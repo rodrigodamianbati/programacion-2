@@ -35,8 +35,7 @@ Lista * inicio;
 void leerValores(Lista **L) {
     int valor;           // Variable para almacenar temporalmente el número ingresado
     Lista *nuevoNodo;    // Puntero para crear y alojar en memoria el nuevo nodo
-    Lista *actual;       // Puntero auxiliar para recorrer la lista buscando la posición de inserción
-    Lista *anterior;     // Puntero auxiliar para recordar el nodo previo a 'actual'
+    Lista *actual;       // Puntero auxiliar para recorrer la lista
 
     printf("Ingrese números enteros (999 para finalizar):\n");
     scanf("%d", &valor);
@@ -46,47 +45,46 @@ void leerValores(Lista **L) {
 
         // Reserva dinámica de memoria para el nuevo nodo
         nuevoNodo = (Lista *) malloc(sizeof(Lista));
-        nuevoNodo->data = valor; // Asignación del dato
-        nuevoNodo->sgte = NULL;  // Inicialización del puntero al siguiente nodo
+        nuevoNodo->data = valor;
+        nuevoNodo->sgte = NULL;
 
-        // Caso 1: La lista está completamente vacía (*L es NULL).
-        // El nuevo nodo pasa a ser directamente la cabeza (inicio) de la lista.
-        if (*L == NULL) {
+        // Caso 1: Inserción al INICIO.
+        // Ocurre si la lista está vacía (*L == NULL) o si el nuevo valor es MAYOR o IGUAL
+        // al valor de la cabeza ((*L)->data <= valor). En ambos casos, el nuevo nodo pasa a ser la cabeza.
+        if (*L == NULL || (*L)->data <= valor) {
+            nuevoNodo->sgte = *L;
             *L = nuevoNodo;
         } else {
-            // Caso 2: La lista YA contiene elementos.
-            // Para mantener el orden descendente (de mayor a menor), debemos encontrar la
-            // posición correcta usando dos punteros auxiliares:
-            //  - 'actual': Explora los nodos de la lista para comparar sus valores.
-            //  - 'anterior': Conserva la referencia del nodo previo a 'actual'.
+            // Caso 2: Inserción en el MEDIO o al FINAL.
+            // Ocurre cuando el nuevo valor es MENOR que el primer nodo de la lista.
+            //
+            // Técnica de inspección "look-ahead" (mirar al de adelante):
+            // En lugar de usar dos punteros (actual y anterior), nos paramos en 'actual' e
+            // inspeccionamos el nodo SIGUIENTE (actual->sgte) para decidir si avanzar o frenar.
             actual = *L;
-            anterior = NULL;
 
-            // Recorremos la lista mientras el elemento actual sea MAYOR que el valor ingresado.
-            // El bucle se detiene cuando:
-            //  a) 'actual' es NULL -> llegamos al final (el valor ingresado es el menor de todos).
-            //  b) 'actual->data <= valor' -> encontramos el lugar exacto antes de un número menor/igual.
-            while (actual != NULL && actual->data > valor) {
-                anterior = actual;
+            // Avanzamos mientras:
+            // 1. Exista un nodo siguiente (actual->sgte != NULL) -> evita desbordamiento de memoria.
+            // 2. El dato del nodo siguiente sea MAYOR al nuevo valor -> mantiene el orden descendente.
+            // Al salir del bucle, 'actual' queda parado en el nodo EXACTO previo a la inserción.
+            while (actual->sgte != NULL && actual->sgte->data > valor) {
                 actual = actual->sgte;
             }
 
-            // --- ¿DÓNDE Y CÓMO SE REALIZA LA INSERCIÓN? ---
+            // --- REENGANCHE EN 2 PASOS (¡EL ORDEN ES CRÍTICO!) ---
+            //
+            // PASO 1 (PRIMERO): Conectar el nuevo nodo con el resto de la lista.
+            //     nuevoNodo->sgte = actual->sgte;
+            //     ¡MUY IMPORTANTE PARA ESTUDIANTES! Este paso DEBE hacerse primero.
+            //     Si hiciéramos 'actual->sgte = nuevoNodo' primero, sobreescribiríamos
+            //     la dirección del resto de la lista y PERDERÍAMOS todos los nodos siguientes.
+            nuevoNodo->sgte = actual->sgte;
 
-            // Subcaso 2.A: Inserción al PRINCIPIO de la lista.
-            // Ocurre cuando 'anterior' sigue siendo NULL (el bucle while no dio ninguna vuelta).
-            // Esto significa que 'valor' es MAYOR que el primer elemento existente (*L).
-            if (anterior == NULL) {
-                nuevoNodo->sgte = *L; // El nuevo nodo se enlaza al que era el primer nodo
-                *L = nuevoNodo;        // La cabeza de la lista (*L) pasa a ser el nuevo nodo
-            } 
-            // Subcaso 2.B: Inserción en el MEDIO o al FINAL de la lista.
-            // Ocurre cuando 'anterior' avanzó al menos una posición (no es NULL).
-            // El nuevo nodo debe ubicarse justo DESPUÉS de 'anterior' y ANTES de 'actual'.
-            else {
-                anterior->sgte = nuevoNodo; // 'anterior' ahora se enlaza con el nuevo nodo
-                nuevoNodo->sgte = actual;   // 'nuevoNodo' apunta a 'actual' (o a NULL si es al final)
-            }
+            // PASO 2 (DESPUÉS): Conectar 'actual' con el nuevo nodo.
+            //     actual->sgte = nuevoNodo;
+            //     Una vez asegurada la referencia al resto de la lista en el paso 1,
+            //     recién podemos desviar el puntero de 'actual' hacia nuestro nuevo nodo.
+            actual->sgte = nuevoNodo;
         }
 
         // Lectura del siguiente número
