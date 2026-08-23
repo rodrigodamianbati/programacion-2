@@ -20,11 +20,8 @@ typedef struct regNodo {
     struct regNodo * sgte;  // Puntero al siguiente nodo en la lista enlazada
 } Lista;
 
-// Puntero global al primer nodo de la lista (cabeza de la lista).
-Lista * inicio;
-
 /**
- * Función: leerValores
+ * Procedimiento: leerValores
  * --------------------
  * Lee números enteros por teclado hasta ingresar el valor 999 (bandera de corte).
  * Inserta cada número en la lista enlazada manteniendo un orden descendente (mayor a menor).
@@ -134,24 +131,25 @@ int contarNegativos(Lista *L) {
  */
 int buscarPosicion(Lista *L, int X) {
     Lista *actual = L;
-    int posicion = 1;
+    int contador = 1;
+    int posicion = 0;
 
     // Dado que la lista está ordenada de mayor a menor,
-    // podemos detenernos si actual->data es menor a X.
-    while (actual != NULL && actual->data >= X) {
+    // podemos detenernos si actual->data es menor a X o si ya encontramos el elemento.
+    while (actual != NULL && actual->data >= X && posicion == 0) {
         if (actual->data == X) {
-            return posicion;
+            posicion = contador;
         }
-        posicion++;
+        contador++;
         actual = actual->sgte;
     }
 
-    return 0; // Retorna 0 si no se encontró
+    return posicion; // Retorna la posición encontrada o 0 si no existe en la lista
 }
 
 /**
- * Función: eliminarX
- * ------------------
+ * Procedimiento: eliminarX
+ * ------------------------
  * Busca un valor X en la lista enlazada y, en caso de existir, lo elimina
  * desconectando el nodo y liberando su memoria.
  * Aprovecha que la lista está ordenada descendentemente.
@@ -159,43 +157,37 @@ int buscarPosicion(Lista *L, int X) {
  * Parámetros:
  * - L: Puntero doble al inicio de la lista para permitir modificar la cabeza.
  * - X: Valor entero a eliminar.
- * 
- * Retorna:
- * - 1 si la eliminación fue exitosa.
- * - 0 si el elemento X no se encontraba en la lista (no se pudo realizar).
+ * - exito: Puntero a entero que devuelve 1 si la eliminación fue exitosa, o 0 si no.
  */
-int eliminarX(Lista **L, int X) {
-    if (*L == NULL) {
-        return 0; // Lista vacía, no se puede eliminar
-    }
-
-    Lista *aBorrar;
-
-    // Caso 1: El elemento a eliminar es la cabeza de la lista (primer nodo)
-    if ((*L)->data == X) {
-        aBorrar = *L;
-        *L = (*L)->sgte;
-        free(aBorrar);
-        return 1;
-    }
-
-    // Caso 2: El elemento está en el medio o al final de la lista.
-    // Usamos inspección "look-ahead" (mirar el nodo siguiente actual->sgte).
+void eliminarX(Lista **L, int X, int *exito) {
     Lista *actual = *L;
+    Lista *aBorrar = NULL;
+    *exito = 0;
 
-    while (actual->sgte != NULL && actual->sgte->data > X) {
-        actual = actual->sgte;
+    // Verificamos que la lista no esté vacía
+    if (*L != NULL) {
+        // Caso 1: El elemento a eliminar es la cabeza de la lista (primer nodo)
+        if ((*L)->data == X) {
+            aBorrar = *L;
+            *L = (*L)->sgte;
+            free(aBorrar);
+            *exito = 1;
+        } else {
+            // Caso 2: El elemento está en el medio o al final de la lista.
+            // Usamos inspección "look-ahead" (mirar el nodo siguiente actual->sgte).
+            while (actual->sgte != NULL && actual->sgte->data > X) {
+                actual = actual->sgte;
+            }
+
+            // Verificamos si el nodo siguiente contiene X
+            if (actual->sgte != NULL && actual->sgte->data == X) {
+                aBorrar = actual->sgte;
+                actual->sgte = aBorrar->sgte; // Reenganche pasando de largo aBorrar
+                free(aBorrar);                // Liberación de memoria dinámica
+                *exito = 1;
+            }
+        }
     }
-
-    // Verificamos si el nodo siguiente contiene X
-    if (actual->sgte != NULL && actual->sgte->data == X) {
-        aBorrar = actual->sgte;
-        actual->sgte = aBorrar->sgte; // Reenganche pasando de largo aBorrar
-        free(aBorrar);                // Liberación de memoria dinámica
-        return 1;
-    }
-
-    return 0; // No se encontró el elemento X
 }
 
 /**
@@ -205,10 +197,9 @@ int eliminarX(Lista **L, int X) {
  * solicita la carga de datos y muestra los valores almacenados en pantalla.
  */
 int main() {
-    Lista *aux; // Puntero auxiliar para recorrer la lista sin perder la referencia al inicio
+    Lista *inicio = NULL; // Puntero local a la cabeza de la lista (inicialmente vacía)
+    Lista *aux;          // Puntero auxiliar para recorrer la lista sin perder la referencia al inicio
     int x;
-
-    inicio = NULL; // Inicialización del puntero global inicio a NULL (lista vacía)
 
     // Carga ordenada de valores en la lista
     leerValores(&inicio);
@@ -243,7 +234,9 @@ int main() {
     // Requerimiento 3: Dado un número X eliminarlo de la lista, en caso qué exista.
     printf("\nIngrese un número X para eliminar de la lista: ");
     if (scanf("%d", &x) == 1) {
-        if (eliminarX(&inicio, x)) {
+        int exito = 0;
+        eliminarX(&inicio, x, &exito);
+        if (exito) {
             printf("El número %d fue eliminado exitosamente.\n", x);
 
             printf("Lista actualizada:\n");
