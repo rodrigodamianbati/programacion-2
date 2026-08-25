@@ -1,147 +1,180 @@
 /*Problema
-
-Una empresa de desarrollo de software va a trabajar en el diseño e implementación de productos para entretenimiento. Estos productos pueden simular una partida de cartas o un juego de mesa donde los jugadores se disponen a jugar respetando su ubicación, de forma análoga a un círculo. Cuando termina el turno de la última persona/jugador, continúa jugando el primer jugador, salvo qué decida retirarse del juego o si el juego funcionara con vidas, estas se hubiesen acabado.
-Entre las funcionalidades básicas que se requieren diseñar e implementar se encuentran:
-Recorrer la mesa de juego. Se desea mostrar por pantalla información del jugador. En este caso asumimos que está disponible la funcionalidad mostrarJugador qué recibe como paràmetro información de tipo Jugador
-Agregar un jugador nuevo (alguien se suma a la mesa de juego).  Para esta primera versión, este nuevo jugador se unirá al último jugador, sin romper el círculo.
-Avanzar el turno. Esta funcionalidad permite habilitar al siguiente jugador a jugar.
-Eliminar un jugador (alguien pierde la partida o decide salir del juego). Se debe re-organizar la mesa de juego. 
-
+Una empresa de desarrollo de software va a trabajar en el diseño e implementación
+de productos para entretenimiento. Estos productos pueden simular una partida de
+cartas o un juego de mesa donde los jugadores se disponen a jugar respetando su
+ubicación, de forma análoga a un círculo. Cuando termina el turno de la última
+persona/jugador, continúa jugando el primer jugador, salvo qué decida retirarse del
+juego o si el juego funcionara con vidas, estas se hubiesen acabado.
+Entre las funcionalidades básicas que se requieren diseñar e implementar se
+encuentran:
+A. Recorrer la mesa de juego. Se desea mostrar por pantalla información del
+jugador. En este caso asumimos que está disponible la funcionalidad
+mostrarJugador qué recibe como paràmetro información de tipo Jugador
+B. Agregar un jugador nuevo (alguien se suma a la mesa de juego). Para esta
+primera versión, este nuevo jugador se unirá al último jugador, sin romper el
+círculo.
+C. Avanzar el turno. Esta funcionalidad permite habilitar al siguiente jugador a
+jugar.
+D. Eliminar un jugador (alguien pierde la partida o decide salir del juego). Se
+debe re-organizar la mesa de juego.
 En esta oportunidad te vamos a solicitar qué:
-modeles la estructura de datos qué permite modelar la mesa de juego.
-diseñes e implementes al menos las funcionalidades A y D del problema.
-
-Forma de trabajo
-En equipo máximo 3 integrantes dónde tendrán que poner a prueba los siguientes roles:
-Diseñador de Estructuras: responsable de la definición técnica de tipos de datos qué permitan modelar la información del juego. El objetivo para la clase está puesto en la representación de la mesa de juego. 
- Ingeniero de Algoritmos: responsable de la lógica de punteros, el control de flujo y la preservación del sentido de jugabilidad respetando el orden circular.
-Analista de Casos de Prueba:  definir los casos que permitan poner a prueba la solución
-
-Entrega parte 1:  24 de Agosto 2026
-Mìnimo: 
-a) La especificación y una breve descripción de las decisiones qué han tomado para el punto 1 de la consigna
-b) La resolución de al menos una de las funcionalidades solicitadas
+1) modeles la estructura de datos qué permite modelar la mesa de juego.
+2) diseñes e implementes al menos las funcionalidades A y D del problema.
 */
-
-// Online C Compiler - Build, Compile and Run your C programs online in your favorite browser
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Tjugador {
-    char nombre[10];
-    int vidasRestantes;
-    struct Tjugador *sgteJugador;
-}Jugador;
+typedef struct tJugador {
+    int nro;
+    int puntos;
+} jugador;
 
-typedef struct {
-    int cantidadJugadores;
-    Jugador *primerJugador;    
-}Juego;
+typedef struct tLisGame {
+    jugador dato;
+    struct tLisGame *sgte;  
+} listaJugadores;
 
-void mostrarJugador(Jugador *jugador){
-    printf("Jugador: %s, Vidas: %d\n", jugador->nombre, jugador->vidasRestantes);
+void mostrarJugador(jugador j) {
+    printf("Jugador Nro: %d, Puntos: %d\n", j.nro, j.puntos);
 }
 
-void recorrerMesa(Juego juego) {
-    Jugador *aux = juego.primerJugador;
-    for (int i = 0; i < juego.cantidadJugadores; i++) {
-        mostrarJugador(aux);
-        aux = aux->sgteJugador;
-    }
-}
-
-void agregarJugadorNuevo(Juego *juego, const char nombre[], int vidasRestantes) {
-    Jugador *nuevo = (Jugador *)malloc(sizeof(Jugador));
-
-    strncpy(nuevo->nombre, nombre, sizeof(nuevo->nombre) - 1);
-    nuevo->nombre[sizeof(nuevo->nombre) - 1] = '\0';
-    nuevo->vidasRestantes = vidasRestantes;
-
-    if (juego->primerJugador == NULL || juego->cantidadJugadores == 0) {
-        nuevo->sgteJugador = nuevo; // Se apunta a sí mismo formando el círculo
-        juego->primerJugador = nuevo;
+/*
+A. Recorrer la mesa de juego. Se desea mostrar por pantalla información del
+jugador. En este caso asumimos que está disponible la funcionalidad
+mostrarJugador qué recibe como paràmetro información de tipo Jugador
+*/
+void recorrerMesa(listaJugadores *primerJugador) {
+    if (primerJugador == NULL) {
+        printf("La mesa esta vacia.\n");
     } else {
-        // Buscamos el último jugador (aquel cuyo siguiente es el primer jugador)
-        Jugador *aux = juego->primerJugador;
-        while (aux->sgteJugador != juego->primerJugador) {
-            aux = aux->sgteJugador;
+        int turno = 1;
+        listaJugadores *aux = primerJugador;
+
+        printf("Turno %d -> ", turno);
+        mostrarJugador(aux->dato);
+
+        aux = aux->sgte;
+        turno++;
+
+        while (aux != primerJugador) {
+            printf("Turno %d -> ", turno);
+            mostrarJugador(aux->dato);
+            aux = aux->sgte;
+            turno++;
         }
-        aux->sgteJugador = nuevo;
-        nuevo->sgteJugador = juego->primerJugador;
+
+        printf("Total de jugadores en la mesa: %d\n", turno - 1);
+        printf("Fin de la vuelta. El siguiente turno vuelve a ser: Jugador Nro %d\n", aux->dato.nro);
     }
-    
-    juego->cantidadJugadores++;
 }
 
-void agregarJugadores(Juego *juego) {
+/*
+B. Agregar un jugador nuevo (alguien se suma a la mesa de juego). Para esta
+primera versión, este nuevo jugador se unirá al último jugador, sin romper el
+círculo.
+*/
+void agregarJugadorNuevo(listaJugadores **primerJugador, int nro, int puntos) {
+    listaJugadores *nuevo = (listaJugadores *)malloc(sizeof(listaJugadores));
+    nuevo->dato.nro = nro;
+    nuevo->dato.puntos = puntos;
+
+    if (*primerJugador == NULL) {
+        nuevo->sgte = nuevo; // Se apunta a sí mismo formando el círculo
+        *primerJugador = nuevo;
+    } else {
+        // Buscamos el último jugador (aquel cuyo siguiente es el primero)
+        listaJugadores *aux = *primerJugador;
+        while (aux->sgte != *primerJugador) {
+            aux = aux->sgte;
+        }
+        aux->sgte = nuevo;
+        nuevo->sgte = *primerJugador;
+    }
+}
+
+void agregarJugadores(listaJugadores **primerJugador) {
     char opcion = 's';
-    char nombre[10];
-    int vidas;
+    int nro;
+    int puntos;
 
     while (opcion == 's' || opcion == 'S') {
         printf("\n--- Ingrese datos del jugador ---\n");
-        printf("Nombre: ");
-        scanf("%9s", nombre);
-        printf("Vidas restantes: ");
-        scanf("%d", &vidas);
+        printf("Numero de jugador: ");
+        scanf("%d", &nro);
+        printf("Puntos: ");
+        scanf("%d", &puntos);
 
-        agregarJugadorNuevo(juego, nombre, vidas);
+        agregarJugadorNuevo(primerJugador, nro, puntos);
 
         printf("¿Desea agregar otro jugador? (s/n): ");
         scanf(" %c", &opcion);
     }
 }
 
-void eliminarJugador(Juego *juego, Jugador jugador) {
-    if (juego->primerJugador == NULL || juego->cantidadJugadores == 0) {
+/*
+C. Avanzar el turno. Esta funcionalidad permite habilitar al siguiente jugador a
+jugar.
+*/
+void avanzarTurno(listaJugadores **turnoActual) {
+    if (*turnoActual != NULL) {
+        *turnoActual = (*turnoActual)->sgte;
+        printf("Turno avanzado. Ahora juega el jugador Nro: %d\n", (*turnoActual)->dato.nro);
+    } else {
+        printf("No hay jugadores en la mesa.\n");
+    }
+}
+
+/*
+D. Eliminar un jugador (alguien pierde la partida o decide salir del juego). Se
+debe re-organizar la mesa de juego.
+*/
+void eliminarJugador(listaJugadores **primerJugador, int nro) {
+    if (*primerJugador == NULL) {
         printf("No hay jugadores en la mesa para eliminar.\n");
     } else {
-        Jugador *actual = juego->primerJugador;
-        Jugador *anterior = NULL;
+        listaJugadores *actual = *primerJugador;
+        listaJugadores *anterior = NULL;
 
         // Caso 1: Hay un solo jugador en la mesa
-        if (actual->sgteJugador == juego->primerJugador) {
-            if (strcmp(actual->nombre, jugador.nombre) == 0) {
+        if (actual->sgte == *primerJugador) {
+            if (actual->dato.nro == nro) {
                 free(actual);
-                juego->primerJugador = NULL;
-                juego->cantidadJugadores = 0;
-                printf("Jugador %s eliminado. La mesa quedo vacia.\n", jugador.nombre);
+                *primerJugador = NULL;
+                printf("Jugador %d eliminado. La mesa quedo vacia.\n", nro);
             } else {
-                printf("El jugador %s no se encuentra en la mesa.\n", jugador.nombre);
+                printf("El jugador %d no se encuentra en la mesa.\n", nro);
             }
         } 
         // Caso 2: El jugador a eliminar es el primero (y hay más de uno)
-        else if (strcmp(actual->nombre, jugador.nombre) == 0) {
-            Jugador *ultimo = juego->primerJugador;
-            while (ultimo->sgteJugador != juego->primerJugador) {
-                ultimo = ultimo->sgteJugador;
+        else if (actual->dato.nro == nro) {
+            listaJugadores *ultimo = *primerJugador;
+            while (ultimo->sgte != *primerJugador) {
+                ultimo = ultimo->sgte;
             }
 
-            juego->primerJugador = actual->sgteJugador;
-            ultimo->sgteJugador = juego->primerJugador;
+            *primerJugador = actual->sgte;
+            ultimo->sgte = *primerJugador;
             free(actual);
-            juego->cantidadJugadores--;
-            printf("Jugador %s eliminado de la mesa.\n", jugador.nombre);
+            printf("Jugador %d eliminado de la mesa.\n", nro);
         } 
         // Caso 3: El jugador a eliminar está en el medio o al final
         else {
             anterior = actual;
-            actual = actual->sgteJugador;
+            actual = actual->sgte;
 
-            while (actual != juego->primerJugador && strcmp(actual->nombre, jugador.nombre) != 0) {
+            while (actual != *primerJugador && actual->dato.nro != nro) {
                 anterior = actual;
-                actual = actual->sgteJugador;
+                actual = actual->sgte;
             }
 
-            if (actual != juego->primerJugador) {
-                anterior->sgteJugador = actual->sgteJugador;
+            if (actual != *primerJugador) {
+                anterior->sgte = actual->sgte;
                 free(actual);
-                juego->cantidadJugadores--;
-                printf("Jugador %s eliminado de la mesa.\n", jugador.nombre);
+                printf("Jugador %d eliminado de la mesa.\n", nro);
             } else {
-                printf("El jugador %s no se encuentra en la mesa.\n", jugador.nombre);
+                printf("El jugador %d no se encuentra en la mesa.\n", nro);
             }
         }
     }
@@ -149,6 +182,24 @@ void eliminarJugador(Juego *juego, Jugador jugador) {
 
 int main()
 {
-    printf("Welcome to Online IDE!! Happy Coding :)");
+    listaJugadores *primerJugador = NULL;
+    listaJugadores *turno = NULL;
+
+    printf("--- CARGA DE JUGADORES ---\n");
+    agregarJugadores(&primerJugador);
+    turno = primerJugador;
+
+    printf("\n--- MESA DE JUEGO ---\n");
+    recorrerMesa(primerJugador);
+
+    if (turno != NULL) {
+        printf("\n--- PRUEBA DE AVANCE DE TURNOS (VUELTA COMPLETA) ---\n");
+        printf("Turno actual (inicial): Jugador Nro: %d\n", turno->dato.nro);
+
+        avanzarTurno(&turno); // Pasa al 2do jugador
+        avanzarTurno(&turno); // Pasa al 3er jugador
+        avanzarTurno(&turno); // Vuelve al 1er jugador (cierra la vuelta)
+    }
+
     return 0;
 }
