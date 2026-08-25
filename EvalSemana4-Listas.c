@@ -49,24 +49,15 @@ void recorrerMesa(listaJugadores *primerJugador) {
     if (primerJugador == NULL) {
         printf("La mesa esta vacia.\n");
     } else {
-        int turno = 1;
         listaJugadores *aux = primerJugador;
 
-        printf("Turno %d -> ", turno);
         mostrarJugador(aux->dato);
-
         aux = aux->sgte;
-        turno++;
 
         while (aux != primerJugador) {
-            printf("Turno %d -> ", turno);
             mostrarJugador(aux->dato);
             aux = aux->sgte;
-            turno++;
         }
-
-        printf("Total de jugadores en la mesa: %d\n", turno - 1);
-        printf("Fin de la vuelta. El siguiente turno vuelve a ser: Jugador Nro %d\n", aux->dato.nro);
     }
 }
 
