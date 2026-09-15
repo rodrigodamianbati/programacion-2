@@ -77,9 +77,10 @@ void imprimirHojas(Arbol A, int minimo, int maximo) {
     if (!estaVacio(A)) {
         if (esHoja(A) && A->dato >= minimo && A->dato <= maximo) {
             printf("%d ", A->dato);
+        }else{
+            imprimirHojas(A->hizq, minimo, maximo);
+            imprimirHojas(A->hder, minimo, maximo);
         }
-        imprimirHojas(A->hizq, minimo, maximo);
-        imprimirHojas(A->hder, minimo, maximo);
     }
 }
 
