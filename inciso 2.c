@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct nodoA {
     int dato;
@@ -98,8 +99,5 @@ int cantClaves(Arbol a, int x) {
     return cant;
 }
 
-/*8. Diseñe e implemente en C un módulo llamado igualesAB, que determine si dos
-árboles binarios que almacenan números enteros son iguales, es decir, si tienen la
-misma forma y contenido. Realice una versión recursiva e iterativa. Defina los tipos
-necesarios para resolver el problema.*/
+
 
